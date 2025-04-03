@@ -1,14 +1,22 @@
 import re
-from typing import Dict, Tuple, List, Set
+from typing import Dict, Tuple, List, Set, Optional, Pattern, Match
 
 
 class SQLMasker:
-    def __init__(self):
-        self._counter = 1
-        self._mapping = {}
+    """
+    A class for masking and unmasking SQL statements while preserving structure.
+    
+    This class provides functionality to obfuscate SQL statements by masking identifiers,
+    string literals, and comments, while preserving SQL keywords and structure.
+    """
+    
+    def __init__(self) -> None:
+        """Initialize the SQLMasker with default settings."""
+        self._counter: int = 1
+        self._mapping: Dict[str, str] = {}
         
         # SQL keywords to preserve
-        self._keywords = {
+        self._keywords: Set[str] = {
             # Standard SQL keywords
             'SELECT', 'FROM', 'WHERE', 'AND', 'OR', 'INSERT', 'UPDATE', 'DELETE',
             'JOIN', 'LEFT', 'RIGHT', 'INNER', 'OUTER', 'CROSS', 'GROUP', 'ORDER',
@@ -83,7 +91,7 @@ class SQLMasker:
             'FROM_BASE64', 'TO_HEX', 'FROM_HEX'
         }
 
-    def encode(self, sql: str) -> Tuple[str, Dict]:
+    def encode(self, sql: str) -> Tuple[str, Dict[str, str]]:
         """
         Obfuscate a SQL statement while preserving its structure.
         
@@ -102,7 +110,7 @@ class SQLMasker:
         tokens = self._tokenize(sql)
         
         # Process each token
-        masked_tokens = []
+        masked_tokens: List[str] = []
         for token_type, token_value in tokens:
             if token_type == 'COMMENT':
                 # Mask comments
@@ -126,7 +134,7 @@ class SQLMasker:
                     # Handle qualified names (e.g., table.column)
                     parts = token_value.split('.')
                     if len(parts) > 1:
-                        masked_parts = []
+                        masked_parts: List[str] = []
                         for part in parts:
                             if part.upper() in self._keywords:
                                 masked_parts.append(part)
@@ -152,7 +160,7 @@ class SQLMasker:
         
         return masked_sql, self._mapping
 
-    def decode(self, masked_sql: str, mapping: Dict) -> str:
+    def decode(self, masked_sql: str, mapping: Dict[str, str]) -> str:
         """
         Restore original names in an obfuscated SQL statement.
         
@@ -164,21 +172,21 @@ class SQLMasker:
             The original SQL statement
         """
         # Create reverse mapping
-        rev_mapping = {v: k for k, v in mapping.items()}
+        rev_mapping: Dict[str, str] = {v: k for k, v in mapping.items()}
         
         # Replace all masked elements with their original values
         # Process in order of longest mask first to avoid partial replacements
         result = masked_sql
         
         # First, replace comment masks
-        comment_pattern = re.compile(r"(/\*COMMENT\d+\*/|--COMMENT\d+)")
+        comment_pattern: Pattern = re.compile(r"(/\*COMMENT\d+\*/|--COMMENT\d+)")
         for match in comment_pattern.finditer(result):
             mask = match.group(0)
             if mask in rev_mapping:
                 result = result.replace(mask, rev_mapping[mask])
         
         # Next, replace string literal masks
-        string_pattern = re.compile(r"'m\d+'")
+        string_pattern: Pattern = re.compile(r"'m\d+'")
         for match in string_pattern.finditer(result):
             mask = match.group(0)
             if mask in rev_mapping:
@@ -186,8 +194,11 @@ class SQLMasker:
         
         # Finally, replace identifier masks
         # Sort masks by length (descending) to avoid partial replacements
-        identifier_masks = sorted([m for m in rev_mapping.keys() if m.startswith('m') and not m.startswith("'m")], 
-                                key=len, reverse=True)
+        identifier_masks: List[str] = sorted(
+            [m for m in rev_mapping.keys() if m.startswith('m') and not m.startswith("'m")], 
+            key=len, 
+            reverse=True
+        )
         for mask in identifier_masks:
             # Replace only whole identifiers, not parts of other identifiers
             pattern = re.compile(r'\b' + re.escape(mask) + r'\b')
@@ -205,11 +216,11 @@ class SQLMasker:
         Returns:
             List of (token_type, token_value) tuples
         """
-        tokens = []
+        tokens: List[Tuple[str, str]] = []
         remaining = sql
         
         # Define regex patterns for different token types
-        patterns = [
+        patterns: List[Tuple[str, str]] = [
             ('COMMENT', r'/\*[\s\S]*?\*/'),  # Multiline comments
             ('COMMENT', r'--[^\n]*'),        # Inline comments
             ('STRING', r"'[^']*'"),          # String literals
@@ -221,7 +232,7 @@ class SQLMasker:
         while remaining:
             matched = False
             for token_type, pattern in patterns:
-                match = re.match(pattern, remaining)
+                match: Optional[Match] = re.match(pattern, remaining)
                 if match:
                     token_value = match.group(0)
                     tokens.append((token_type, token_value))

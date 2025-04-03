@@ -1,34 +1,40 @@
 import pytest
 import os
+from typing import Dict, Tuple
 from sqlmask.masker import SQLMasker
 
 
 @pytest.fixture
-def masker():
+def masker() -> SQLMasker:
+    """Create and return a SQLMasker instance for testing."""
     return SQLMasker()
 
 
 @pytest.fixture
-def complex_cte_sql():
+def complex_cte_sql() -> str:
+    """Load complex CTE SQL query from fixture file."""
     current_dir = os.path.dirname(os.path.abspath(__file__))
     fixture_path = os.path.join(current_dir, 'fixtures', 'complex_cte.sql')
     with open(fixture_path, 'r') as f:
         return f.read()
 
 
-def test_simple_select(masker):
+def test_simple_select(masker: SQLMasker) -> None:
+    """Test masking and unmasking of a simple SELECT statement."""
     sql = "SELECT id, name FROM users"
     masked, mapping = masker.encode(sql)
     assert masker.decode(masked, mapping) == sql
 
 
-def test_select_with_alias(masker):
+def test_select_with_alias(masker: SQLMasker) -> None:
+    """Test masking and unmasking of a SELECT statement with table alias."""
     sql = "SELECT u.id, u.name FROM users u"
     masked, mapping = masker.encode(sql)
     assert masker.decode(masked, mapping) == sql
 
 
-def test_complex_join(masker):
+def test_complex_join(masker: SQLMasker) -> None:
+    """Test masking and unmasking of a complex JOIN statement."""
     sql = """
     SELECT u.id, u.name, o.order_id, o.total
     FROM users u
@@ -39,7 +45,8 @@ def test_complex_join(masker):
     assert masker.decode(masked, mapping).strip() == sql.strip()
 
 
-def test_subquery(masker):
+def test_subquery(masker: SQLMasker) -> None:
+    """Test masking and unmasking of a query with a subquery."""
     sql = """
     SELECT u.name, (
         SELECT COUNT(*)
@@ -52,7 +59,8 @@ def test_subquery(masker):
     assert masker.decode(masked, mapping).strip() == sql.strip()
 
 
-def test_complex_query_with_multiple_joins(masker):
+def test_complex_query_with_multiple_joins(masker: SQLMasker) -> None:
+    """Test masking and unmasking of a complex query with multiple joins."""
     sql = """
     SELECT
         u.id,
@@ -75,7 +83,8 @@ def test_complex_query_with_multiple_joins(masker):
     assert masker.decode(masked, mapping).strip() == sql.strip()
 
 
-def test_insert_statement(masker):
+def test_insert_statement(masker: SQLMasker) -> None:
+    """Test masking and unmasking of an INSERT statement."""
     sql = """
     INSERT INTO users (name, email, created_at)
     VALUES ('John', 'john@example.com', NOW())
@@ -84,7 +93,8 @@ def test_insert_statement(masker):
     assert masker.decode(masked, mapping).strip() == sql.strip()
 
 
-def test_update_statement(masker):
+def test_update_statement(masker: SQLMasker) -> None:
+    """Test masking and unmasking of an UPDATE statement."""
     sql = """
     UPDATE users u
     SET status = 'inactive',
@@ -97,14 +107,15 @@ def test_update_statement(masker):
     assert masker.decode(masked, mapping).strip() == sql.strip()
 
 
-def test_consistent_masking(masker):
+def test_consistent_masking(masker: SQLMasker) -> None:
+    """Test that identical identifiers are consistently masked."""
     sql = "SELECT name FROM users WHERE name = 'John' OR name = 'John'"
     masked, mapping = masker.encode(sql)
     assert masker.decode(masked, mapping) == sql
 
 
-def test_complex_cte_query(masker, complex_cte_sql):
-    # Test masking a complex query with multiple CTEs.
+def test_complex_cte_query(masker: SQLMasker, complex_cte_sql: str) -> None:
+    """Test masking and unmasking of a complex query with multiple CTEs."""
     masked, mapping = masker.encode(complex_cte_sql)
     
     # Verify that the masked SQL doesn't contain any of the original identifiers
@@ -120,7 +131,7 @@ def test_complex_cte_query(masker, complex_cte_sql):
     assert masker.decode(masked, mapping).strip() == complex_cte_sql.strip()
 
 
-def test_string_literal_masking(masker):
+def test_string_literal_masking(masker: SQLMasker) -> None:
     """Test that string literals are properly masked and unmasked."""
     sql = """
     SELECT u.name, u.email
@@ -160,7 +171,7 @@ def test_string_literal_masking(masker):
     assert masker.decode(masked_repeated, mapping_repeated).strip() == sql_with_repeated_string.strip()
 
 
-def test_inline_comment_masking(masker):
+def test_inline_comment_masking(masker: SQLMasker) -> None:
     """Test that inline comments are properly masked and unmasked."""
     sql = """
     SELECT id, name, email -- Select user fields
@@ -198,7 +209,7 @@ def test_inline_comment_masking(masker):
     assert masker.decode(masked_repeated, mapping_repeated).strip() == sql_with_repeated_comment.strip()
 
 
-def test_multiline_comment_masking(masker):
+def test_multiline_comment_masking(masker: SQLMasker) -> None:
     """Test that multiline comments are properly masked and unmasked."""
     sql = """
     /* 
@@ -223,7 +234,7 @@ def test_multiline_comment_masking(masker):
     assert masker.decode(masked, mapping).strip() == sql.strip()
 
 
-def test_mixed_comments_and_strings(masker):
+def test_mixed_comments_and_strings(masker: SQLMasker) -> None:
     """Test that a mix of comments and string literals are properly masked and unmasked."""
     sql = """
     -- Query for active users
@@ -260,7 +271,7 @@ def test_mixed_comments_and_strings(masker):
     assert decoded.strip() == sql.strip()
 
 
-def test_bigquery_functions_and_datatypes(masker):
+def test_bigquery_functions_and_datatypes(masker: SQLMasker) -> None:
     """Test that BigQuery functions and datatypes are preserved (not masked)."""
     sql = """
     SELECT 
