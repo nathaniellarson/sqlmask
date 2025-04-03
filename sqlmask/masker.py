@@ -9,6 +9,7 @@ class SQLMasker:
         
         # SQL keywords to preserve
         self._keywords = {
+            # Standard SQL keywords
             'SELECT', 'FROM', 'WHERE', 'AND', 'OR', 'INSERT', 'UPDATE', 'DELETE',
             'JOIN', 'LEFT', 'RIGHT', 'INNER', 'OUTER', 'CROSS', 'GROUP', 'ORDER',
             'BY', 'HAVING', 'LIMIT', 'OFFSET', 'AS', 'ON', 'VALUES', 'INTO', 'SET',
@@ -17,7 +18,69 @@ class SQLMasker:
             'STRING_AGG', 'RANK', 'INTERVAL', 'NOT', 'NULL', 'IS', 'IN', 'BETWEEN',
             'CREATE', 'TABLE', 'DROP', 'ALTER', 'ADD', 'COLUMN', 'PRIMARY', 'KEY',
             'FOREIGN', 'REFERENCES', 'INDEX', 'UNIQUE', 'DEFAULT', 'CASCADE',
-            'UNION'
+            'UNION',
+            
+            # Google BigQuery data types
+            'INT64', 'NUMERIC', 'FLOAT64', 'BOOL', 'STRING', 'BYTES', 'DATE', 
+            'DATETIME', 'TIME', 'TIMESTAMP', 'ARRAY', 'STRUCT', 'GEOGRAPHY',
+            'JSON', 'BIGNUMERIC', 'INTERVAL',
+            
+            # Google BigQuery functions
+            'CAST', 'SAFE_CAST', 'PARSE_DATE', 'PARSE_TIME', 'PARSE_TIMESTAMP',
+            'FORMAT', 'CONCAT', 'SUBSTR', 'SUBSTRING', 'TRIM', 'LTRIM', 'RTRIM',
+            'REPLACE', 'REGEXP_EXTRACT', 'REGEXP_CONTAINS', 'REGEXP_REPLACE',
+            'LOWER', 'UPPER', 'INITCAP', 'LPAD', 'RPAD', 'LEFT', 'RIGHT',
+            'CHAR_LENGTH', 'CHARACTER_LENGTH', 'LENGTH', 'STARTS_WITH', 'ENDS_WITH',
+            'CONTAINS', 'OCTET_LENGTH', 'BYTE_LENGTH', 'SPLIT', 'ARRAY_LENGTH',
+            'ARRAY_TO_STRING', 'GENERATE_ARRAY', 'GENERATE_DATE_ARRAY',
+            'ARRAY_CONCAT', 'ARRAY_REVERSE', 'ARRAY', 'UNNEST',
+            'EXTRACT', 'DATE', 'DATETIME', 'TIME', 'TIMESTAMP',
+            'CURRENT_DATE', 'CURRENT_DATETIME', 'CURRENT_TIME', 'CURRENT_TIMESTAMP',
+            'DATE_ADD', 'DATE_SUB', 'DATE_DIFF', 'DATE_TRUNC', 'DATE_FROM_UNIX_DATE',
+            'FORMAT_DATE', 'PARSE_DATE', 'UNIX_DATE',
+            'DATETIME_ADD', 'DATETIME_SUB', 'DATETIME_DIFF', 'DATETIME_TRUNC',
+            'FORMAT_DATETIME', 'PARSE_DATETIME',
+            'TIME_ADD', 'TIME_SUB', 'TIME_DIFF', 'TIME_TRUNC',
+            'FORMAT_TIME', 'PARSE_TIME',
+            'TIMESTAMP_ADD', 'TIMESTAMP_SUB', 'TIMESTAMP_DIFF', 'TIMESTAMP_TRUNC',
+            'FORMAT_TIMESTAMP', 'PARSE_TIMESTAMP', 'UNIX_SECONDS', 'UNIX_MILLIS',
+            'TIMESTAMP_SECONDS', 'TIMESTAMP_MILLIS',
+            'ABS', 'SIGN', 'IS_INF', 'IS_NAN', 'IEEE_DIVIDE', 'RAND',
+            'ROUND', 'TRUNC', 'CEIL', 'CEILING', 'FLOOR',
+            'COS', 'COSH', 'ACOS', 'ACOSH', 'SIN', 'SINH', 'ASIN', 'ASINH',
+            'TAN', 'TANH', 'ATAN', 'ATANH', 'ATAN2',
+            'DIV', 'MOD', 'POW', 'POWER', 'SQRT', 'CBRT',
+            'EXP', 'LN', 'LOG', 'LOG10',
+            'GREATEST', 'LEAST', 'IF', 'IFNULL', 'NULLIF', 'COALESCE',
+            'TO_JSON_STRING', 'FROM_JSON', 'JSON_EXTRACT', 'JSON_EXTRACT_SCALAR',
+            'JSON_QUERY', 'JSON_VALUE', 'JSON_EXTRACT_ARRAY',
+            'ST_GEOGPOINT', 'ST_MAKELINE', 'ST_MAKEPOLYGON', 'ST_MAKEPOLYGONORIENTED',
+            'ST_DISTANCE', 'ST_DWITHIN', 'ST_EQUALS', 'ST_INTERSECTS', 'ST_CONTAINS',
+            'ST_WITHIN', 'ST_COVERS', 'ST_COVEREDBY', 'ST_DISJOINT', 'ST_TOUCHES',
+            'ST_INTERSECTSBOX', 'ST_UNION_AGG', 'ST_CENTROID', 'ST_AREA', 'ST_LENGTH',
+            'ST_PERIMETER', 'ST_BOUNDARY', 'ST_BUFFER', 'ST_CLOSESTPOINT',
+            'ST_SIMPLIFY', 'ST_SNAPTOGRID', 'ST_DIFFERENCE', 'ST_INTERSECTION',
+            'ST_UNION', 'ST_DIMENSION', 'ST_GEOMETRYTYPE', 'ST_NUMPOINTS',
+            'ST_ISEMPTY', 'ST_ISCOLLECTION', 'ST_ASTEXT', 'ST_ASGEOJSON',
+            'SAFE', 'ERROR', 'ANY_VALUE', 'COUNTIF', 'LOGICAL_AND', 'LOGICAL_OR',
+            'APPROX_COUNT_DISTINCT', 'APPROX_QUANTILES', 'APPROX_TOP_COUNT',
+            'APPROX_TOP_SUM', 'HLL_COUNT.INIT', 'HLL_COUNT.MERGE',
+            'HLL_COUNT.MERGE_PARTIAL', 'HLL_COUNT.EXTRACT',
+            'BIT_COUNT', 'BIT_AND', 'BIT_OR', 'BIT_XOR',
+            'CORR', 'COVAR_POP', 'COVAR_SAMP', 'STDDEV_POP', 'STDDEV_SAMP',
+            'STDDEV', 'VAR_POP', 'VAR_SAMP', 'VARIANCE',
+            'PERCENTILE_CONT', 'PERCENTILE_DISC',
+            'ARRAY_AGG', 'STRING_AGG',
+            'LAG', 'LEAD', 'FIRST_VALUE', 'LAST_VALUE', 'NTH_VALUE',
+            'RANK', 'DENSE_RANK', 'PERCENT_RANK', 'CUME_DIST', 'NTILE', 'ROW_NUMBER',
+            'NET.IP_FROM_STRING', 'NET.SAFE_IP_FROM_STRING', 'NET.IP_TO_STRING',
+            'NET.IP_NET_MASK', 'NET.IP_TRUNC', 'NET.IPV4_FROM_INT64', 'NET.IPV4_TO_INT64',
+            'NET.HOST', 'NET.PUBLIC_SUFFIX', 'NET.REG_DOMAIN',
+            'ML.PREDICT', 'ML.EVALUATE', 'ML.ROC_CURVE', 'ML.CONFUSION_MATRIX',
+            'ML.FEATURE_INFO', 'ML.WEIGHTS', 'ML.TRANSFORM', 'ML.GENERATE_TEXT',
+            'SESSION_USER', 'CURRENT_USER', 'GENERATE_UUID', 'MD5', 'SHA1', 'SHA256',
+            'SHA512', 'FARM_FINGERPRINT', 'TO_BASE32', 'TO_BASE64', 'FROM_BASE32',
+            'FROM_BASE64', 'TO_HEX', 'FROM_HEX'
         }
 
     def encode(self, sql: str) -> Tuple[str, Dict]:
@@ -65,11 +128,14 @@ class SQLMasker:
                     if len(parts) > 1:
                         masked_parts = []
                         for part in parts:
-                            if part not in self._mapping:
-                                masked = f"m{self._counter}"
-                                self._mapping[part] = masked
-                                self._counter += 1
-                            masked_parts.append(self._mapping[part])
+                            if part.upper() in self._keywords:
+                                masked_parts.append(part)
+                            else:
+                                if part not in self._mapping:
+                                    masked = f"m{self._counter}"
+                                    self._mapping[part] = masked
+                                    self._counter += 1
+                                masked_parts.append(self._mapping[part])
                         masked_tokens.append('.'.join(masked_parts))
                     else:
                         if token_value not in self._mapping:
