@@ -10,10 +10,42 @@ class SQLMasker:
     string literals, and comments, while preserving SQL keywords and structure.
     """
     
-    def __init__(self) -> None:
-        """Initialize the SQLMasker with default settings."""
+    def __init__(self, existing_mapping: Optional[Dict[str, str]] = None) -> None:
+        """Initialize the SQLMasker with default settings.
+        
+        Args:
+            existing_mapping: Optional dictionary mapping original values to masked values
+        """
         self._counter: int = 1
         self._mapping: Dict[str, str] = {}
+        
+        # If an existing mapping is provided, use it and adjust the counter
+        if existing_mapping:
+            self._mapping = existing_mapping.copy()
+            # Find the highest counter value in the existing mapping
+            max_counter = 0
+            for masked_value in self._mapping.values():
+                if masked_value.startswith("'m") and masked_value.endswith("'"):
+                    try:
+                        counter_val = int(masked_value.strip("'m"))
+                        max_counter = max(max_counter, counter_val)
+                    except ValueError:
+                        pass
+                elif masked_value.startswith("m"):
+                    try:
+                        counter_val = int(masked_value[1:])
+                        max_counter = max(max_counter, counter_val)
+                    except ValueError:
+                        pass
+                elif masked_value.startswith("--COMMENT") or "COMMENT" in masked_value:
+                    try:
+                        counter_val = int(masked_value.replace("--COMMENT", "").replace("/*COMMENT", "").replace("*/", ""))
+                        max_counter = max(max_counter, counter_val)
+                    except ValueError:
+                        pass
+            # Set the counter to one more than the highest value found
+            if max_counter > 0:
+                self._counter = max_counter + 1
         
         # SQL keywords to preserve
         self._keywords: Set[str] = {
@@ -21,7 +53,7 @@ class SQLMasker:
             'SELECT', 'FROM', 'WHERE', 'AND', 'OR', 'INSERT', 'UPDATE', 'DELETE',
             'JOIN', 'LEFT', 'RIGHT', 'INNER', 'OUTER', 'CROSS', 'GROUP', 'ORDER',
             'BY', 'HAVING', 'LIMIT', 'OFFSET', 'AS', 'ON', 'VALUES', 'INTO', 'SET',
-            'WITH', 'OVER', 'PARTITION', 'DESC', 'ASC', 'CASE', 'WHEN', 'THEN', 'END',
+            'WITH', 'OVER', 'PARTITION', 'DESC', 'ASC', 'CASE', 'WHEN', 'THEN', 'ELSE', 'END',
             'DISTINCT', 'COUNT', 'SUM', 'AVG', 'MIN', 'MAX', 'NOW', 'TRUE', 'FALSE',
             'STRING_AGG', 'RANK', 'INTERVAL', 'NOT', 'NULL', 'IS', 'IN', 'BETWEEN',
             'CREATE', 'TABLE', 'DROP', 'ALTER', 'ADD', 'COLUMN', 'PRIMARY', 'KEY',
@@ -91,20 +123,21 @@ class SQLMasker:
             'FROM_BASE64', 'TO_HEX', 'FROM_HEX'
         }
 
-    def encode(self, sql: str) -> Tuple[str, Dict[str, str]]:
+    def encode(self, sql: str, reset_mapping: bool = False) -> Tuple[str, Dict[str, str]]:
         """
         Obfuscate a SQL statement while preserving its structure.
         
         Args:
             sql: The SQL statement to obfuscate
-            
+            reset_mapping: If True, reset the mapping before encoding
+        
         Returns:
             Tuple containing:
                 - The obfuscated SQL statement
                 - Mapping dictionary of original to obfuscated names
         """
-        self._counter = 1
-        self._mapping = {}
+        if reset_mapping:
+            self.reset()
         
         # Tokenize the SQL into components
         tokens = self._tokenize(sql)
@@ -159,6 +192,13 @@ class SQLMasker:
         masked_sql = ''.join(masked_tokens)
         
         return masked_sql, self._mapping
+
+    def reset(self) -> None:
+        """
+        Reset the masker state by clearing the mapping and resetting the counter.
+        """
+        self._counter = 1
+        self._mapping = {}
 
     def decode(self, masked_sql: str, mapping: Dict[str, str]) -> str:
         """
