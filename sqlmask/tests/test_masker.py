@@ -472,9 +472,11 @@ def test_additional_sql_keywords() -> None:
     FROM table_data
     FULL JOIN other_table ON table_data.id = other_table.id
     PIVOT (SUM(sales) FOR quarter IN ('Q1', 'Q2', 'Q3', 'Q4'))
+    UNPIVOT (revenue FOR month IN (jan, feb, mar))
     WHERE data_type LIKE 'INT%'
     AND (amount DECIMAL(10,2), code INTEGER)
     QUALIFY ROW_NUMBER() OVER (PARTITION BY schema_name ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) = 1
+    ORDER BY column_name ROW
     """
     
     # Test with lowercase keywords
@@ -483,9 +485,11 @@ def test_additional_sql_keywords() -> None:
     from table_data
     full join other_table on table_data.id = other_table.id
     pivot (sum(sales) for quarter in ('Q1', 'Q2', 'Q3', 'Q4'))
+    unpivot (revenue for month in (jan, feb, mar))
     where data_type like 'int%'
     and (amount decimal(10,2), code integer)
     qualify row_number() over (partition by schema_name rows between unbounded preceding and current row) = 1
+    order by column_name row
     """
     
     # Test uppercase keywords
@@ -494,6 +498,7 @@ def test_additional_sql_keywords() -> None:
     # Verify that uppercase SQL keywords are preserved
     assert "ALL" in masked_uppercase
     assert "PIVOT" in masked_uppercase
+    assert "UNPIVOT" in masked_uppercase
     assert "FOR" in masked_uppercase
     assert "IN" in masked_uppercase
     assert "LIKE" in masked_uppercase
@@ -501,7 +506,10 @@ def test_additional_sql_keywords() -> None:
     assert "FULL" in masked_uppercase
     assert "DECIMAL" in masked_uppercase
     assert "INTEGER" in masked_uppercase
+    assert "ROW" in masked_uppercase
     assert "ROWS" in masked_uppercase
+    assert "PRECEDING" in masked_uppercase
+    assert "CURRENT" in masked_uppercase
     
     # Verify that identifiers are masked
     assert "columns" not in masked_uppercase
@@ -530,14 +538,121 @@ def test_additional_sql_keywords() -> None:
     # SQLMasker should recognize them as keywords but preserve their case
     assert "all" in masked_lowercase
     assert "pivot" in masked_lowercase
+    assert "unpivot" in masked_lowercase
     assert "for" in masked_lowercase
     assert "like" in masked_lowercase
     assert "qualify" in masked_lowercase
     assert "full" in masked_lowercase
     assert "decimal" in masked_lowercase
     assert "integer" in masked_lowercase
+    assert "row" in masked_lowercase
     assert "rows" in masked_lowercase
+    assert "preceding" in masked_lowercase
+    assert "current" in masked_lowercase
     
     # Verify that the masked SQL can be decoded back to the original
     decoded_lowercase = masker.decode(masked_lowercase, mapping_lowercase)
     assert decoded_lowercase.strip() == sql_lowercase.strip()
+
+
+def test_comprehensive_sql_keywords() -> None:
+    """Test that all SQL keywords are properly preserved."""
+    masker = SQLMasker()
+    
+    # Test with a comprehensive set of SQL keywords
+    sql = """
+    WITH RECURSIVE cte AS (
+        SELECT * FROM base_table
+        UNION ALL
+        SELECT t.* FROM joined_table t
+        INNER JOIN cte ON cte.id = t.parent_id
+        WHERE t.level < 5
+    )
+    SELECT 
+        id, 
+        name,
+        CASE WHEN value IS NULL THEN 0 ELSE value END AS adjusted_value,
+        FLOAT_COLUMN,
+        VARCHAR_COLUMN,
+        CHAR_COLUMN,
+        BOOLEAN_COLUMN,
+        DOUBLE_COLUMN
+    FROM cte
+    NATURAL JOIN dimension_table
+    LEFT JOIN LATERAL (SELECT * FROM items WHERE items.parent_id = cte.id) AS i ON TRUE
+    FULL JOIN other_table USING (common_id)
+    WHERE id > 100
+    AND value BETWEEN 10 AND 50
+    GROUP BY id, name
+    WINDOW w AS (PARTITION BY department ORDER BY salary DESC)
+    QUALIFY ROW_NUMBER() OVER (
+        PARTITION BY department 
+        ORDER BY salary DESC
+        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+        EXCLUDE CURRENT ROW
+        IGNORE NULLS
+    ) <= 5
+    ORDER BY id
+    FETCH FIRST 10 ROWS ONLY
+    """    
+    
+    # Mask the SQL
+    masked_sql, mapping = masker.encode(sql)
+    
+    # Verify that SQL keywords are preserved
+    assert "WITH" in masked_sql
+    assert "RECURSIVE" in masked_sql
+    assert "UNION" in masked_sql
+    assert "ALL" in masked_sql
+    assert "INNER" in masked_sql
+    assert "JOIN" in masked_sql
+    assert "ON" in masked_sql
+    assert "WHERE" in masked_sql
+    assert "SELECT" in masked_sql
+    assert "CASE" in masked_sql
+    assert "WHEN" in masked_sql
+    assert "IS" in masked_sql
+    assert "NULL" in masked_sql
+    assert "THEN" in masked_sql
+    assert "ELSE" in masked_sql
+    assert "END" in masked_sql
+    assert "AS" in masked_sql
+    assert "FROM" in masked_sql
+    assert "NATURAL" in masked_sql
+    assert "LEFT" in masked_sql
+    assert "LATERAL" in masked_sql
+    assert "FULL" in masked_sql
+    assert "USING" in masked_sql
+    assert "AND" in masked_sql
+    assert "BETWEEN" in masked_sql
+    assert "GROUP" in masked_sql
+    assert "BY" in masked_sql
+    assert "WINDOW" in masked_sql
+    assert "PARTITION" in masked_sql
+    assert "ORDER" in masked_sql
+    assert "DESC" in masked_sql
+    assert "QUALIFY" in masked_sql
+    assert "ROW_NUMBER" in masked_sql
+    assert "OVER" in masked_sql
+    assert "ROWS" in masked_sql
+    assert "UNBOUNDED" in masked_sql
+    assert "PRECEDING" in masked_sql
+    assert "CURRENT" in masked_sql
+    assert "ROW" in masked_sql
+    assert "EXCLUDE" in masked_sql
+    assert "IGNORE" in masked_sql
+    assert "NULLS" in masked_sql
+    assert "FETCH" in masked_sql
+    assert "FIRST" in masked_sql
+    assert "ONLY" in masked_sql
+    
+    # Verify that identifiers are masked
+    assert "base_table" not in masked_sql
+    assert "joined_table" not in masked_sql
+    assert "dimension_table" not in masked_sql
+    assert "items" not in masked_sql
+    assert "other_table" not in masked_sql
+    
+    # Verify that the masked SQL can be decoded back to the original
+    decoded_sql = masker.decode(masked_sql, mapping)
+    assert decoded_sql.strip() == sql.strip()
