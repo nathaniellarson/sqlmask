@@ -58,7 +58,7 @@ class SQLMasker:
             'STRING_AGG', 'RANK', 'INTERVAL', 'NOT', 'NULL', 'IS', 'IN', 'BETWEEN',
             'CREATE', 'TABLE', 'DROP', 'ALTER', 'ADD', 'COLUMN', 'PRIMARY', 'KEY',
             'FOREIGN', 'REFERENCES', 'INDEX', 'UNIQUE', 'DEFAULT', 'CASCADE',
-            'UNION',
+            'UNION', 'INT', 'ALL', 'PIVOT', 'FOR', 'QUALIFY', 'LIKE',
             
             # Google BigQuery data types
             'INT64', 'NUMERIC', 'FLOAT64', 'BOOL', 'STRING', 'BYTES', 'DATE', 
@@ -162,6 +162,7 @@ class SQLMasker:
             elif token_type == 'IDENTIFIER':
                 # Mask identifiers
                 if token_value.upper() in self._keywords:
+                    # Preserve the original case of SQL keywords
                     masked_tokens.append(token_value)
                 else:
                     # Handle qualified names (e.g., table.column)
@@ -170,6 +171,7 @@ class SQLMasker:
                         masked_parts: List[str] = []
                         for part in parts:
                             if part.upper() in self._keywords:
+                                # Preserve the original case of SQL keywords
                                 masked_parts.append(part)
                             else:
                                 if part not in self._mapping:

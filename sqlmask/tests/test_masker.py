@@ -460,3 +460,72 @@ def test_case_statement_with_else() -> None:
     # Verify that the masked SQL can be decoded back to the original
     decoded_sql = masker.decode(masked_sql, mapping)
     assert decoded_sql.strip() == sql.strip()
+
+
+def test_additional_sql_keywords() -> None:
+    """Test that additional SQL keywords (INT, ALL, PIVOT, FOR, QUALIFY, LIKE) are properly preserved."""
+    masker = SQLMasker()
+    
+    # Test with uppercase keywords
+    sql_uppercase = """
+    SELECT ALL columns.column_name
+    FROM table_data
+    PIVOT (SUM(sales) FOR quarter IN ('Q1', 'Q2', 'Q3', 'Q4'))
+    WHERE data_type LIKE 'INT%'
+    QUALIFY ROW_NUMBER() OVER (PARTITION BY schema_name) = 1
+    """
+    
+    # Test with lowercase keywords
+    sql_lowercase = """
+    select all columns.column_name
+    from table_data
+    pivot (sum(sales) for quarter in ('Q1', 'Q2', 'Q3', 'Q4'))
+    where data_type like 'int%'
+    qualify row_number() over (partition by schema_name) = 1
+    """
+    
+    # Test uppercase keywords
+    masked_uppercase, mapping_uppercase = masker.encode(sql_uppercase)
+    
+    # Verify that uppercase SQL keywords are preserved
+    assert "ALL" in masked_uppercase
+    assert "PIVOT" in masked_uppercase
+    assert "FOR" in masked_uppercase
+    assert "IN" in masked_uppercase
+    assert "LIKE" in masked_uppercase
+    assert "QUALIFY" in masked_uppercase
+    
+    # Verify that identifiers are masked
+    assert "columns" not in masked_uppercase
+    assert "column_name" not in masked_uppercase
+    assert "table_data" not in masked_uppercase
+    assert "sales" not in masked_uppercase
+    assert "quarter" not in masked_uppercase
+    assert "data_type" not in masked_uppercase
+    assert "schema_name" not in masked_uppercase
+    
+    # Verify that string literals are masked
+    assert "'Q1'" not in masked_uppercase
+    assert "'Q2'" not in masked_uppercase
+    assert "'Q3'" not in masked_uppercase
+    assert "'Q4'" not in masked_uppercase
+    assert "'INT%'" not in masked_uppercase
+    
+    # Verify that the masked SQL can be decoded back to the original
+    decoded_uppercase = masker.decode(masked_uppercase, mapping_uppercase)
+    assert decoded_uppercase.strip() == sql_uppercase.strip()
+    
+    # Test lowercase keywords
+    masked_lowercase, mapping_lowercase = masker.encode(sql_lowercase)
+    
+    # Verify that lowercase SQL keywords are preserved in their original case
+    # SQLMasker should recognize them as keywords but preserve their case
+    assert "all" in masked_lowercase
+    assert "pivot" in masked_lowercase
+    assert "for" in masked_lowercase
+    assert "like" in masked_lowercase
+    assert "qualify" in masked_lowercase
+    
+    # Verify that the masked SQL can be decoded back to the original
+    decoded_lowercase = masker.decode(masked_lowercase, mapping_lowercase)
+    assert decoded_lowercase.strip() == sql_lowercase.strip()
