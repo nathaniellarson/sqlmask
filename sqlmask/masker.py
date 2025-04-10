@@ -58,7 +58,8 @@ class SQLMasker:
             'STRING_AGG', 'RANK', 'INTERVAL', 'NOT', 'NULL', 'IS', 'IN', 'BETWEEN',
             'CREATE', 'TABLE', 'DROP', 'ALTER', 'ADD', 'COLUMN', 'PRIMARY', 'KEY',
             'FOREIGN', 'REFERENCES', 'INDEX', 'UNIQUE', 'DEFAULT', 'CASCADE',
-            'UNION', 'INT', 'ALL', 'PIVOT', 'FOR', 'QUALIFY', 'LIKE',
+            'UNION', 'INT', 'ALL', 'PIVOT', 'FOR', 'QUALIFY', 'LIKE', 'DECIMAL',
+            'INTEGER', 'FULL', 'ROWS',
             
             # Google BigQuery data types
             'INT64', 'NUMERIC', 'FLOAT64', 'BOOL', 'STRING', 'BYTES', 'DATE', 

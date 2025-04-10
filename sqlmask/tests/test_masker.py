@@ -463,25 +463,29 @@ def test_case_statement_with_else() -> None:
 
 
 def test_additional_sql_keywords() -> None:
-    """Test that additional SQL keywords (INT, ALL, PIVOT, FOR, QUALIFY, LIKE) are properly preserved."""
+    """Test that additional SQL keywords are properly preserved."""
     masker = SQLMasker()
     
     # Test with uppercase keywords
     sql_uppercase = """
     SELECT ALL columns.column_name
     FROM table_data
+    FULL JOIN other_table ON table_data.id = other_table.id
     PIVOT (SUM(sales) FOR quarter IN ('Q1', 'Q2', 'Q3', 'Q4'))
     WHERE data_type LIKE 'INT%'
-    QUALIFY ROW_NUMBER() OVER (PARTITION BY schema_name) = 1
+    AND (amount DECIMAL(10,2), code INTEGER)
+    QUALIFY ROW_NUMBER() OVER (PARTITION BY schema_name ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) = 1
     """
     
     # Test with lowercase keywords
     sql_lowercase = """
     select all columns.column_name
     from table_data
+    full join other_table on table_data.id = other_table.id
     pivot (sum(sales) for quarter in ('Q1', 'Q2', 'Q3', 'Q4'))
     where data_type like 'int%'
-    qualify row_number() over (partition by schema_name) = 1
+    and (amount decimal(10,2), code integer)
+    qualify row_number() over (partition by schema_name rows between unbounded preceding and current row) = 1
     """
     
     # Test uppercase keywords
@@ -494,6 +498,10 @@ def test_additional_sql_keywords() -> None:
     assert "IN" in masked_uppercase
     assert "LIKE" in masked_uppercase
     assert "QUALIFY" in masked_uppercase
+    assert "FULL" in masked_uppercase
+    assert "DECIMAL" in masked_uppercase
+    assert "INTEGER" in masked_uppercase
+    assert "ROWS" in masked_uppercase
     
     # Verify that identifiers are masked
     assert "columns" not in masked_uppercase
@@ -525,6 +533,10 @@ def test_additional_sql_keywords() -> None:
     assert "for" in masked_lowercase
     assert "like" in masked_lowercase
     assert "qualify" in masked_lowercase
+    assert "full" in masked_lowercase
+    assert "decimal" in masked_lowercase
+    assert "integer" in masked_lowercase
+    assert "rows" in masked_lowercase
     
     # Verify that the masked SQL can be decoded back to the original
     decoded_lowercase = masker.decode(masked_lowercase, mapping_lowercase)
