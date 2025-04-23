@@ -1,0 +1,5 @@
+id,query,description
+1,"SELECT * FROM m1 WHERE m2 = 'm3'","Test with quoted identifier"
+2,"SELECT * FROM m4 WHERE m5 IN ('m6', 'm7')","Multiple quoted identifiers"
+3,"m8.m9 = 'm10' AND m11 != \"m12\"","Mixed quote types"
+4,"SELECT m2, m13 FROM m14 WHERE m15 = m16","Test with similar identifiers"

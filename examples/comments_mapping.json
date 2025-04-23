@@ -1,0 +1,9 @@
+{
+  "-- This is a sensitive table": "--COMMENT1",
+  "/* This user ID\nis confidential */": "/*COMMENT2*/",
+  "/* This query accesses\nfinancial data */": "/*COMMENT3*/",
+  "-- This is PII data": "--COMMENT4",
+  "/* Column selection logic:\n   * Only selecting necessary fields\n   * Avoiding sensitive data\n   */": "/*COMMENT5*/",
+  "-- Excluding SSN and DOB for privacy": "--COMMENT6",
+  "-- Regional filter": "--COMMENT7"
+}

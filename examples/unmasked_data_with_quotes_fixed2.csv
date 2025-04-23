@@ -1,0 +1,5 @@
+id,query,description
+1,SELECT * FROM users WHERE name = 'active',Test with quoted identifier
+2,"SELECT * FROM products WHERE category IN ('electronics', 'clothing')",Multiple quoted identifiers
+3,"orders.status = 'shipped' AND customer_id != \12345\""""",Mixed quote types
+4,"SELECT name, price FROM inventory WHERE quantity = 10",Test with similar identifiers

@@ -1,0 +1,23 @@
+id,query
+1,"SELECT * FROM users -- This is a sensitive table
+WHERE user_id = 123 /* This user ID
+is confidential */
+AND status = 'active'"
+2,"/* This query accesses
+financial data */
+SELECT 
+  account_number,
+  balance -- This is PII data
+FROM accounts
+WHERE customer_id = 456"
+3,"SELECT 
+  /* Column selection logic:
+   * Only selecting necessary fields
+   * Avoiding sensitive data
+   */
+  first_name,
+  last_name,
+  -- Excluding SSN and DOB for privacy
+  email
+FROM customers
+WHERE region = 'WEST' -- Regional filter"

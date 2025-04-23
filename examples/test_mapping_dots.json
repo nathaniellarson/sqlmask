@@ -1,0 +1,19 @@
+{
+  "users": "m1",
+  "name": "m2",
+  "orders": "m3",
+  "total": "m4",
+  "users_table": "m5",
+  "orders_table": "m6",
+  "user_id": "m7",
+  "order_id": "m8",
+  "products": "m9",
+  "product": "m10",
+  "price": "m11",
+  "customers": "m12",
+  "email": "m13",
+  "addresses": "m14",
+  "street": "m15",
+  "customer_id": "m16",
+  "address_id": "m17"
+}

@@ -1,0 +1,4 @@
+id,query,description
+1,"SELECT m1.m2, m3.m4 FROM m5 m1 JOIN m6 m3 ON m1.m7 = m3.m8","Test with dot notation"
+2,"SELECT COUNT(*) FROM m9 WHERE m10.m11 > 100","Another test with dot notation"
+3,"m12.m13 JOIN m14.m15 ON m12.m16 = m14.m17","Just identifiers with dots"

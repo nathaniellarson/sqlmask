@@ -1,0 +1,18 @@
+{
+  "users": "m1",
+  "name": "m2",
+  "active": "m3",
+  "products": "m4",
+  "category": "m5",
+  "electronics": "m6",
+  "clothing": "m7",
+  "orders": "m8",
+  "status": "m9",
+  "shipped": "m10",
+  "customer_id": "m11",
+  "12345": "m12",
+  "price": "m13",
+  "inventory": "m14",
+  "quantity": "m15",
+  "10": "m16"
+}

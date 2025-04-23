@@ -253,6 +253,47 @@ class SQLMasker:
         
         return result
 
+    def encode_comments_only(self, sql: str, reset_mapping: bool = False) -> Tuple[str, Dict[str, str]]:
+        """
+        Obfuscate only the comments in a SQL statement, leaving everything else as is.
+        
+        Args:
+            sql: The SQL statement to obfuscate
+            reset_mapping: If True, reset the mapping before encoding
+        
+        Returns:
+            Tuple containing:
+                - The SQL statement with only comments obfuscated
+                - Mapping dictionary of original to obfuscated comments
+        """
+        if reset_mapping:
+            self.reset()
+            
+        # Tokenize the SQL statement
+        tokens = self._tokenize(sql)
+        
+        # Process tokens and mask only comments
+        masked_tokens = []
+        for token_type, token_value in tokens:
+            if token_type == 'COMMENT':
+                # Mask comments
+                if token_value not in self._mapping:
+                    # Create a new masked value for this comment
+                    if token_value.startswith('--'):
+                        self._mapping[token_value] = f"--COMMENT{self._counter}"
+                    else:  # Multiline comment
+                        self._mapping[token_value] = f"/*COMMENT{self._counter}*/"
+                    self._counter += 1
+                masked_tokens.append(self._mapping[token_value])
+            else:
+                # Keep all other tokens as is
+                masked_tokens.append(token_value)
+        
+        # Join the tokens back into a SQL string
+        masked_sql = ''.join(masked_tokens)
+        
+        return masked_sql, self._mapping
+        
     def _tokenize(self, sql: str) -> List[Tuple[str, str]]:
         """
         Tokenize SQL into components for masking.

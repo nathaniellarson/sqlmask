@@ -1,0 +1,4 @@
+id,query,description
+1,"SELECT users.name, orders.total FROM users_table users JOIN orders_table orders ON users.user_id = orders.order_id",Test with dot notation
+2,SELECT COUNT(*) FROM products WHERE product.price > 100,Another test with dot notation
+3,customers.email JOIN addresses.street ON customers.customer_id = addresses.address_id,Just identifiers with dots
